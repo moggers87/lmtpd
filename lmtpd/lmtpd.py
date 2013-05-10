@@ -6,17 +6,23 @@
 #
 
 from smtpd import SMTPChannel, SMTPServer, DEBUGSTREAM
+from types import StringType
+import socket
 
 class LMTPChannel(SMTPChannel):
     pass
 
 class LMTPServer(SMTPServer):
     def __init__(self, localaddr):
-        # at some point you need to deal with unix sockets
+        if type(localaddr) == StringType:
+            inet_or_unix = socket.AF_UNIX
+        else:
+            inet_or_unix = socket.AF_INET
+
         self._localaddr = localaddr
         asyncore.dispatcher.__init__(self)
         try:
-            self.create_socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.create_socket(inet_or_unix, socket.SOCK_STREAM)
             # try to re-use a server port if possible
             self.set_reuse_addr()
             self.bind(localaddr)
