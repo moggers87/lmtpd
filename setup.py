@@ -10,7 +10,7 @@ config = {
     'url': 'https://github.com/moggers87/lmtpd',
     'download_url': 'https://github.com/moggers87/lmtpd',
     'author_email': 'moggers87+git@moggers87.co.uk',
-    'version': '0',
+    'version': '1',
     'license': 'MIT', # apparently nothing searches classifiers :(
     'packages': ['lmtpd'],
     'name': 'lmtpd',
