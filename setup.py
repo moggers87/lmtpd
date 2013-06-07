@@ -10,9 +10,9 @@ config = {
     'url': 'https://github.com/moggers87/lmtpd',
     'download_url': 'https://github.com/moggers87/lmtpd',
     'author_email': 'moggers87+git@moggers87.co.uk',
-    'version': '1',
+    'version': '2',
     'license': 'MIT', # apparently nothing searches classifiers :(
-    'packages': ['lmtpd'],
+    'py_modules': ['lmtpd'],
     'name': 'lmtpd',
     'classifiers': [
         'License :: OSI Approved :: MIT License',

@@ -1,4 +1,4 @@
-
+# -*- coding: utf-8 -*-
 #
 # Parts of this module are taken from Python 2.7.3 Lib/smtpd.py
 # Copyright © 2001-2012 Python Software Foundation; All Rights Reserved
