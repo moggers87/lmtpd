@@ -8,7 +8,7 @@ config = {
     'long_description': 'A LMTP counterpart to smtpd in the Python standard library',
     'author': 'Matt Molyneaux',
     'url': 'https://github.com/moggers87/lmtpd',
-    'download_url': 'https://github.com/moggers87/lmtpd',
+    'download_url': 'http://pypi.python.org/pypi/lmtpd',
     'author_email': 'moggers87+git@moggers87.co.uk',
     'version': '2',
     'license': 'MIT', # apparently nothing searches classifiers :(
