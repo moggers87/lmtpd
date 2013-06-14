@@ -10,7 +10,7 @@
 # - UNIX sockets
 #
 
-from smtpd import SMTPChannel, SMTPServer, DEBUGSTREAM, NEWLINE, EMPTYSTRING, COMMASPACE
+from smtpd import SMTPServer, DEBUGSTREAM, NEWLINE, EMPTYSTRING
 from types import StringType
 import asyncore
 import asynchat
