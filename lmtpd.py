@@ -138,7 +138,7 @@ class LMTPChannel(asynchat.async_chat):
                 address = address[1:-1]
         return address
 
-    def smtp_MAIL(self, arg):
+    def lmtp_MAIL(self, arg):
         print >> DEBUGSTREAM, '===> MAIL', arg
         address = self.__getaddr('FROM:', arg) if arg else None
         if not address:
@@ -151,7 +151,7 @@ class LMTPChannel(asynchat.async_chat):
         print >> DEBUGSTREAM, 'sender:', self.__mailfrom
         self.push('250 Ok')
 
-    def smtp_RCPT(self, arg):
+    def lmtp_RCPT(self, arg):
         print >> DEBUGSTREAM, '===> RCPT', arg
         if not self.__mailfrom:
             self.push('503 Error: need MAIL command')
@@ -164,7 +164,7 @@ class LMTPChannel(asynchat.async_chat):
         print >> DEBUGSTREAM, 'recips:', self.__rcpttos
         self.push('250 Ok')
 
-    def smtp_RSET(self, arg):
+    def lmtp_RSET(self, arg):
         if arg:
             self.push('501 Syntax: RSET')
             return
@@ -175,7 +175,7 @@ class LMTPChannel(asynchat.async_chat):
         self.__state = self.COMMAND
         self.push('250 Ok')
 
-    def smtp_DATA(self, arg):
+    def lmtp_DATA(self, arg):
         if not self.__rcpttos:
             self.push('503 Error: need RCPT command')
             return
