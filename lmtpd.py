@@ -32,7 +32,7 @@ class LMTPChannel(asynchat.async_chat):
         self.__line = []
         self.__state = self.COMMAND
         self.__greeting = 0
-        self.__mailform = None
+        self.__mailfrom = None
         self.__rcpttos = []
         self.__data = ''
         self.__fqdn = socket.getfqdn()
