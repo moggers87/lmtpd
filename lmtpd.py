@@ -5,11 +5,6 @@
 # See the file PY-LIC for more details
 #
 
-#
-# TODO:
-# - UNIX sockets
-#
-
 from smtpd import SMTPServer, DEBUGSTREAM, NEWLINE, EMPTYSTRING
 from types import StringType
 import asyncore
@@ -124,7 +119,6 @@ class LMTPChannel(asynchat.async_chat):
         self.push('221 Bye')
         self.close_when_done()
 
-    # this is awful, will choke on unix sockets
     def __getaddr(self, keyword, arg):
         address = None
         keylen = len(keyword)
@@ -227,7 +221,7 @@ class DebuggingServer(LMTPServer):
         for line in lines:
             # headers first
             if inheaders and not line:
-                print 'X-Peer:', peer[0]
+                print 'X-Peer:', repr(peer)
                 inheaders = 0
             print line
         print '------------ END MESSAGE ------------'
