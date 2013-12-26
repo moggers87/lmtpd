@@ -181,6 +181,7 @@ class LMTPChannel(asynchat.async_chat):
         self.push('354 End data with <CR><LF>.<CR><LF>')
 
 class LMTPServer(SMTPServer):
+    """Exactly the same interface as smtpd.SMTPServer, override `process_message` to use"""
     def __init__(self, localaddr):
         if type(localaddr) == StringType:
             inet_or_unix = socket.AF_UNIX

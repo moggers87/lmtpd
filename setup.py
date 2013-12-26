@@ -16,10 +16,11 @@ config = {
     'name': 'lmtpd',
     'classifiers': [
         'License :: OSI Approved :: MIT License',
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 4 - Beta',
         'Programming Language :: Python :: 2',
         'Intended Audience :: Developers',
-        'Topic :: Communications :: Email']
+        'Topic :: Communications :: Email'],
+    'test_suite': 'test_lmtp.LMTPTester'
 }
 
 setup(**config)
