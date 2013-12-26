@@ -5,8 +5,9 @@
 # See the file PY-LIC for more details
 #
 
+from __future__ import print_function
 from smtpd import SMTPServer, DEBUGSTREAM, NEWLINE, EMPTYSTRING
-from types import StringType
+
 import asyncore
 import asynchat
 import socket
@@ -34,12 +35,12 @@ class LMTPChannel(asynchat.async_chat):
 
         try:
             self.__peer = conn.getpeername()
-        except socket.error, err:
+        except socket.error as err:
             self.close()
             if err[0] != errno.ENOTCONN:
                 raise
             return
-        print >> DEBUGSTREAM, 'Peer:', repr(self.__peer)
+        print("Peer:", repr(self.__peer), file=DEBUGSTREAM)
         self.push('220 %s %s' % (self.__fqdn, __version__))
         self.set_terminator('\r\n')
 
@@ -51,7 +52,7 @@ class LMTPChannel(asynchat.async_chat):
 
     def found_terminator(self):
         line = EMPTYSTRING.join(self.__line)
-        print >> DEBUGSTREAM, 'Data:', repr(line)
+        print("Data:", repr(line), file=DEBUGSTREAM)
         self.__line = []
         if self.__state == self.COMMAND:
             if not line:
@@ -133,7 +134,7 @@ class LMTPChannel(asynchat.async_chat):
         return address
 
     def lmtp_MAIL(self, arg):
-        print >> DEBUGSTREAM, '===> MAIL', arg
+        print('===> MAIL', arg, file=DEBUGSTREAM)
         address = self.__getaddr('FROM:', arg) if arg else None
         if not address:
             self.push('501 Syntax: MAIL FROM:<address>')
@@ -142,11 +143,11 @@ class LMTPChannel(asynchat.async_chat):
             self.push('503 Error: nested MAIL command')
             return
         self.__mailfrom = address
-        print >> DEBUGSTREAM, 'sender:', self.__mailfrom
+        print('sender:', self.__mailfrom, file=DEBUGSTREAM)
         self.push('250 Ok')
 
     def lmtp_RCPT(self, arg):
-        print >> DEBUGSTREAM, '===> RCPT', arg
+        print('===> RCPT', arg, file=DEBUGSTREAM)
         if not self.__mailfrom:
             self.push('503 Error: need MAIL command')
             return
@@ -155,7 +156,7 @@ class LMTPChannel(asynchat.async_chat):
             self.push('501 Syntax: RCPT TO: <address>')
             return
         self.__rcpttos.append(address)
-        print >> DEBUGSTREAM, 'recips:', self.__rcpttos
+        print('recips:', self.__rcpttos, file=DEBUGSTREAM)
         self.push('250 Ok')
 
     def lmtp_RSET(self, arg):
@@ -183,7 +184,7 @@ class LMTPChannel(asynchat.async_chat):
 class LMTPServer(SMTPServer):
     """Exactly the same interface as smtpd.SMTPServer, override `process_message` to use"""
     def __init__(self, localaddr):
-        if type(localaddr) == StringType:
+        if type(localaddr) == str:
             inet_or_unix = socket.AF_UNIX
         else:
             inet_or_unix = socket.AF_INET
@@ -201,16 +202,15 @@ class LMTPServer(SMTPServer):
             self.close()
             raise
         else:
-            print >> DEBUGSTREAM, \
-                  '%s started at %s\n\tLocal addr: %s' % (
+            print('{0} started at {1}\n\tLocal addr: {2}'.format(
                 self.__class__.__name__, time.ctime(time.time()),
-                localaddr)
+                localaddr), file=DEBUGSTREAM)
 
     def handle_accept(self):
         pair = self.accept()
         if pair is not None:
             conn, addr = pair
-            print >> DEBUGSTREAM, 'Incoming connection from %s' % repr(addr)
+            print('Incoming connection from', repr(addr), file=DEBUGSTREAM)
             channel = LMTPChannel(self, conn, addr)
 
 class DebuggingServer(LMTPServer):
@@ -218,11 +218,11 @@ class DebuggingServer(LMTPServer):
     def process_message(self, peer, mailfrom, rcpttos, data):
         inheaders = 1
         lines = data.split('\n')
-        print '---------- MESSAGE FOLLOWS ----------'
+        print('---------- MESSAGE FOLLOWS ----------')
         for line in lines:
             # headers first
             if inheaders and not line:
-                print 'X-Peer:', repr(peer)
+                print('X-Peer:', repr(peer))
                 inheaders = 0
-            print line
-        print '------------ END MESSAGE ------------'
+            print(line)
+        print('------------ END MESSAGE ------------')
