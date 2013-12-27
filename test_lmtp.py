@@ -1,3 +1,7 @@
+# -*- coding: utf-8 -*-
+#
+# See LICENSE for copyright notices
+
 import asyncore
 import lmtpd
 import os

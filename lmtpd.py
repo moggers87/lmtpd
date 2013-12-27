@@ -4,6 +4,7 @@
 # Copyright © 2001-2012 Python Software Foundation; All Rights Reserved
 # See the file PY-LIC for more details
 #
+# See LICENSE for additional copyright notices
 
 from __future__ import print_function
 from smtpd import SMTPServer, DEBUGSTREAM, NEWLINE, EMPTYSTRING
