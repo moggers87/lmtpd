@@ -119,12 +119,11 @@ class LMTPTester(unittest.TestCase):
 
     def test_RSET(self):
         """Test resetting the state of the connection"""
-        self.do_cmd(b"MAIL FROM:<" + FROM + b">")
+        self.do_cmd(b"MAIL FROM:<" + FROM + b">", flush=True)
         code, reply = self.do_cmd(b"RSET")
         self.assertEqual(code, 250)
 
         code, reply = self.do_cmd(b"RCPT TO:<" + TO + b">")
-        import pdb; pdb.set_trace()
         self.assertNotEqual(code, 250, reply)
         self.assertEqual(code, 503, reply)
 
