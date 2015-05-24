@@ -7,7 +7,7 @@
 # See LICENSE for additional copyright notices
 
 from __future__ import print_function, unicode_literals
-from smtpd import SMTPServer, DEBUGSTREAM, NEWLINE, EMPTYSTRING
+from smtpd import SMTPServer, DEBUGSTREAM
 
 import asyncore
 import asynchat
@@ -15,7 +15,7 @@ import socket
 import time
 import errno
 
-__version__ = b'Python LMTP server version 4'
+__version__ = 'Python LMTP server version 4'
 
 class LMTPChannel(asynchat.async_chat):
     COMMAND = 0
@@ -42,7 +42,9 @@ class LMTPChannel(asynchat.async_chat):
                 raise
             return
         print(b"Peer:", repr(self.__peer), file=DEBUGSTREAM)
-        self.push(b'220 %s %s' % (self.__fqdn, __version__))
+
+        # can't format bytes in Py 3.3
+        self.push(b' '.join([b'220', self.__fqdn.encode(), __version__.encode()]))
         self.set_terminator(b'\r\n')
 
     def push(self, msg):
@@ -52,7 +54,7 @@ class LMTPChannel(asynchat.async_chat):
         self.__line.append(data)
 
     def found_terminator(self):
-        line = EMPTYSTRING.join(self.__line)
+        line = b"".join(self.__line)
         print(b"Data:", repr(line), file=DEBUGSTREAM)
         self.__line = []
         if self.__state == self.COMMAND:
@@ -67,9 +69,9 @@ class LMTPChannel(asynchat.async_chat):
             else:
                 command = line[:i].upper()
                 arg = line[i+1:].strip()
-            method = getattr(self, b'lmtp_' + command, None)
+            method = getattr(self, 'lmtp_' + command.decode(), None)
             if not method:
-                self.push(b'502 Error: command "%s" not implemented' % command)
+                self.push(b''.join([b'502 Error: command "', command, b'" not implemented']))
                 return
             method(arg)
             return
@@ -84,7 +86,7 @@ class LMTPChannel(asynchat.async_chat):
                     data.append(text[1:])
                 else:
                     data.append(text)
-            self.__data = NEWLINE.join(data)
+            self.__data = b"\n".join(data)
             # process each RCPT TO separately
             for rcptto in self.__rcpttos:
                 status = self.__server.process_message(self.__peer,
@@ -109,7 +111,7 @@ class LMTPChannel(asynchat.async_chat):
             self.push(b'503 Duplicate LHLO')
         else:
             self.__greeting = arg
-            self.push(b'250 %s' % self.__fqdn)
+            self.push(b'250 ' + self.__fqdn.encode())
 
     def lmtp_NOOP(self, arg):
         if arg:
@@ -152,7 +154,7 @@ class LMTPChannel(asynchat.async_chat):
         if not self.__mailfrom:
             self.push(b'503 Error: need MAIL command')
             return
-        address = self.__getaddr('TO:', arg) if arg else None
+        address = self.__getaddr(b'TO:', arg) if arg else None
         if not address:
             self.push(b'501 Syntax: RCPT TO: <address>')
             return
@@ -185,7 +187,7 @@ class LMTPChannel(asynchat.async_chat):
 class LMTPServer(SMTPServer):
     """Exactly the same interface as smtpd.SMTPServer, override `process_message` to use"""
     def __init__(self, localaddr):
-        if type(localaddr) == str:
+        if type(localaddr) in (type(u""), type(b"")):
             inet_or_unix = socket.AF_UNIX
         else:
             inet_or_unix = socket.AF_INET
@@ -203,7 +205,7 @@ class LMTPServer(SMTPServer):
             self.close()
             raise
         else:
-            print(b'{0} started at {1}\n\tLocal addr: {2}'.format(
+            print(u'{0} started at {1}\n\tLocal addr: {2}'.format(
                 self.__class__.__name__, time.ctime(time.time()),
                 localaddr), file=DEBUGSTREAM)
 
@@ -219,11 +221,11 @@ class DebuggingServer(LMTPServer):
     def process_message(self, peer, mailfrom, rcpttos, data):
         inheaders = 1
         lines = data.split(b'\n')
-        print(b'---------- MESSAGE FOLLOWS ----------')
+        print(u'---------- MESSAGE FOLLOWS ----------')
         for line in lines:
             # headers first
             if inheaders and not line:
-                print(b'X-Peer:', repr(peer))
+                print(u'X-Peer:', repr(peer))
                 inheaders = 0
             print(line)
-        print(b'------------ END MESSAGE ------------')
+        print(u'------------ END MESSAGE ------------')

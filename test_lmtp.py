@@ -12,7 +12,7 @@ from time import time
 import threading
 import unittest
 
-SOCKET = b"/tmp/lmtpd-socket-test"
+SOCKET = u"/tmp/lmtpd-socket-test"
 
 TO = b"mrs.smoker@example.com"
 FROM = b"mrs.non-smoker@example.com"
@@ -72,40 +72,40 @@ class LMTPTester(unittest.TestCase):
     def test_conversation(self):
         """Test a basic conversation between client and server"""
         code, reply = self.reply()
-        self.assertEqual(code, 220, b"Greeting was not 220")
+        self.assertEqual(code, 220, reply)
 
         code, reply = self.do_cmd(b"LHLO localhost")
-        self.assertEqual(code, 250, b"LHLO command not OK")
+        self.assertEqual(code, 250, reply)
 
-        code, reply = self.do_cmd(b"MAIL FROM:<%s>" % FROM)
-        self.assertEqual(code, 250, b"MAIL command not OK")
+        code, reply = self.do_cmd(b"MAIL FROM:<" + FROM + b">")
+        self.assertEqual(code, 250, reply)
 
-        code, reply = self.do_cmd(b"RCPT TO:<%s>" % TO)
-        self.assertEqual(code, 250, b"RCPT command not OK")
+        code, reply = self.do_cmd(b"RCPT TO:<" + FROM + b">")
+        self.assertEqual(code, 250, reply)
 
         code, reply = self.do_cmd(b"DATA")
-        self.assertEqual(code, 354, b"DATA command not OK")
+        self.assertEqual(code, 354, reply)
 
         self.conn.send(MSG)
         self.conn.send(b"\r\n.\r\n")
         code, reply = self.reply()
-        self.assertEqual(code, 250, b"Message not received OK")
+        self.assertEqual(code, 250, reply)
 
     def test_MAIL_RCPT_order(self):
         """Test that RCPT can't be used before MAIL"""
-        code, reply = self.do_cmd(b"RCPT TO:<%s>" % TO, flush=True)
+        code, reply = self.do_cmd(b"RCPT TO:<" + TO + b">", flush=True)
 
         self.assertNotEqual(code, 250)
         self.assertEqual(code, 503)
 
     def test_address(self):
         """Test accepting of addresses with and without <>"""
-        code, reply = self.do_cmd(b"MAIL FROM:<%s>" % FROM, flush=True)
-        self.assertEqual(code, 250)
+        code, reply = self.do_cmd(b"MAIL FROM:<" + FROM + b">", flush=True)
+        self.assertEqual(code, 250, reply)
 
         self.do_cmd(b"RSET")
 
-        code, reply = self.do_cmd(b"MAIL FROM:%s" % FROM)
+        code, reply = self.do_cmd(b"MAIL FROM:" + FROM)
         self.assertEqual(code, 250)
 
     def test_DATA_after(self):
@@ -113,22 +113,22 @@ class LMTPTester(unittest.TestCase):
         code, reply = self.do_cmd(b"DATA", flush=True)
         self.assertNotEqual(code, 354, b"DATA command accepted before MAIL")
 
-        self.do_cmd(b"MAIL FROM:<%s>" % FROM)
+        self.do_cmd(b"MAIL FROM:<" + FROM + b">")
         code, reply = self.do_cmd(b"DATA")
         self.assertNotEqual(code, 354, b"DATA command accepted before RCPT")
 
     def test_RSET(self):
         """Test resetting the state of the connection"""
-        self.do_cmd(b"MAIL FROM:<%s>" % FROM, flush=True)
+        self.do_cmd(b"MAIL FROM:<" + FROM + b">")
         code, reply = self.do_cmd(b"RSET")
         self.assertEqual(code, 250)
 
-        code, reply = self.do_cmd(b"RCPT TO:<%s>" % TO)
-
-        self.assertNotEqual(code, 250)
-        self.assertEqual(code, 503)
+        code, reply = self.do_cmd(b"RCPT TO:<" + TO + b">")
+        import pdb; pdb.set_trace()
+        self.assertNotEqual(code, 250, reply)
+        self.assertEqual(code, 503, reply)
 
     def test_not_implemented(self):
         """Test that unknown commands get rejected"""
         code, reply = self.do_cmd(b"HELO", flush=True)
-        self.assertEqual(code, 502)
+        self.assertEqual(code, 502, reply)
