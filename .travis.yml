@@ -7,6 +7,4 @@ python:
     - "2.7"
     - "2.6"
 
-install: "python setup.py develop"
-
 script: "python setup.py test"
