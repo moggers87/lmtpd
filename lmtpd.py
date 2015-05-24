@@ -15,7 +15,7 @@ import socket
 import time
 import errno
 
-__version__ = 'Python LMTP server version 4'
+__version__ = 'Python LMTP server version 5'
 
 class LMTPChannel(asynchat.async_chat):
     COMMAND = 0
