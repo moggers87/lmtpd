@@ -12,7 +12,8 @@ config = {
     'author_email': 'moggers87+git@moggers87.co.uk',
     'version': '5',
     'license': 'MIT', # apparently nothing searches classifiers :(
-    'py_modules': ['lmtpd'],
+    'packages': ['lmtpd'],
+    'data_files': [('share/lmtpd', ['LICENSE', 'PY-LIC'])],
     'name': 'lmtpd',
     'classifiers': [
         'License :: OSI Approved :: MIT License',
@@ -28,7 +29,7 @@ config = {
         'Programming Language :: Python :: Implementation :: PyPy',
         'Intended Audience :: Developers',
         'Topic :: Communications :: Email'],
-    'test_suite': 'test_lmtp.LMTPTester'
+    'test_suite': 'lmtpd.tests.LMTPTester'
 }
 
 setup(**config)
