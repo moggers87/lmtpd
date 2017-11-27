@@ -76,6 +76,12 @@ class LMTPTester(unittest.TestCase):
 
         code, reply = self.do_cmd(b"LHLO localhost")
         self.assertEqual(code, 250, reply)
+        code, reply = self.reply()
+        self.assertEqual(code, 250)
+        self.assertEqual(reply, b"ENHANCEDSTATUSCODES\r\n")
+        code, reply = self.reply()
+        self.assertEqual(reply, b"PIPELINING\r\n")
+        self.assertEqual(code, 250)
 
         code, reply = self.do_cmd(b"MAIL FROM:<" + FROM + b">")
         self.assertEqual(code, 250, reply)
@@ -124,10 +130,27 @@ class LMTPTester(unittest.TestCase):
         self.assertEqual(code, 250)
 
         code, reply = self.do_cmd(b"RCPT TO:<" + TO + b">")
-        self.assertNotEqual(code, 250, reply)
         self.assertEqual(code, 503, reply)
 
     def test_not_implemented(self):
         """Test that unknown commands get rejected"""
         code, reply = self.do_cmd(b"HELO", flush=True)
         self.assertEqual(code, 502, reply)
+
+    def test_pipeline(self):
+        """Test command pipelining works"""
+        self.reply()  # manaully flush message on connect
+
+        self.conn.send(b"MAIL FROM:<" + FROM + b">\r\nRCPT TO:<" + TO + b">\r\nDATA\r\n")
+
+        # MAIL FROM reply
+        code, reply = self.reply()
+        self.assertEqual(code, 250, reply)
+
+        # RCPT TO reply
+        code, reply = self.reply()
+        self.assertEqual(code, 250, reply)
+
+        # DATA reply
+        code, reply = self.reply()
+        self.assertEqual(code, 354, reply)
