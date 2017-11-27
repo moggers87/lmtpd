@@ -17,6 +17,7 @@ import errno
 
 __version__ = 'Python LMTP server version 5'
 
+
 class LMTPChannel(asynchat.async_chat):
     COMMAND = 0
     DATA = 1
@@ -220,6 +221,7 @@ class LMTPServer(SMTPServer):
             conn, addr = pair
             print(b'Incoming connection from', repr(addr), file=DEBUGSTREAM)
             channel = LMTPChannel(self, conn, addr)
+
 
 class DebuggingServer(LMTPServer):
     # Do something with the gathered message

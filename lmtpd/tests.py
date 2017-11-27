@@ -20,10 +20,12 @@ MSG = b"""Subject: I keep falling off!
 Oh! Well I never!
 """
 
+
 class LMTPTestServer(lmtpd.LMTPServer):
     def process_message(*args, **kwargs):
         """Do nothing, server will return 250 OK"""
         pass
+
 
 class LMTPTester(unittest.TestCase):
     """Test cases that connect to a server over a socket"""
@@ -31,7 +33,7 @@ class LMTPTester(unittest.TestCase):
         self.tempdir = tempfile.mkdtemp()
         self.socket_name = os.path.join(self.tempdir, "lmtp")
         self.server = LMTPTestServer(self.socket_name)
-        self.loop = threading.Thread(target=asyncore.loop, kwargs={'timeout':1})
+        self.loop = threading.Thread(target=asyncore.loop, kwargs={'timeout': 1})
         self.loop.start()
 
         # connect to server
@@ -86,7 +88,7 @@ class LMTPTester(unittest.TestCase):
         code, reply = self.do_cmd(b"MAIL FROM:<" + FROM + b">")
         self.assertEqual(code, 250, reply)
 
-        code, reply = self.do_cmd(b"RCPT TO:<" + FROM + b">")
+        code, reply = self.do_cmd(b"RCPT TO:<" + TO + b">")
         self.assertEqual(code, 250, reply)
 
         code, reply = self.do_cmd(b"DATA")
