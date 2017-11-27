@@ -7,12 +7,11 @@ from __future__ import print_function, unicode_literals
 import asyncore
 import lmtpd
 import os
+import shutil
 import socket
-from time import time
+import tempfile
 import threading
 import unittest
-
-SOCKET = u"/tmp/lmtpd-socket-test"
 
 TO = b"mrs.smoker@example.com"
 FROM = b"mrs.non-smoker@example.com"
@@ -29,7 +28,8 @@ class LMTPTestServer(lmtpd.LMTPServer):
 class LMTPTester(unittest.TestCase):
     """Test cases that connect to a server over a socket"""
     def setUp(self):
-        self.socket_name = SOCKET + str(time())
+        self.tempdir = tempfile.mkdtemp()
+        self.socket_name = os.path.join(self.tempdir, "lmtp")
         self.server = LMTPTestServer(self.socket_name)
         self.loop = threading.Thread(target=asyncore.loop, kwargs={'timeout':1})
         self.loop.start()
@@ -44,7 +44,7 @@ class LMTPTester(unittest.TestCase):
         self.file.close()
         self.server.close()
         self.loop.join()
-        os.remove(self.socket_name)
+        shutil.rmtree(self.tempdir)
 
     def reply(self):
         line = self.file.readline()
