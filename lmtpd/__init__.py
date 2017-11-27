@@ -59,7 +59,7 @@ class LMTPChannel(asynchat.async_chat):
         self.__line = []
         if self.__state == self.COMMAND:
             if not line:
-                self.push(b'500 Error: bad syntax')
+                self.push(b'500 5.5.2 Error: bad syntax')
                 return
             method = None
             i = line.find(b' ')
@@ -71,15 +71,15 @@ class LMTPChannel(asynchat.async_chat):
                 arg = line[i+1:].strip()
             method = getattr(self, 'lmtp_' + command.decode(), None)
             if not method:
-                self.push(b''.join([b'502 Error: command "', command, b'" not implemented']))
+                self.push(b''.join([b'502 5.5.2 Error: command "', command, b'" not implemented']))
                 return
             method(arg)
             return
         else:
             if self.__state != self.DATA:
-                self.push(b'451 Internal confusion')
+                self.push(b'451 4.5.1 Internal confusion')
                 return
-            # copied from smtpd.py without understanding what it does
+            # replace CRLF with LF
             data = []
             for text in line.split(b'\r\n'):
                 if text and text[0] == b'.':
@@ -94,7 +94,7 @@ class LMTPChannel(asynchat.async_chat):
                                                        rcptto,
                                                        self.__data)
                 if not status:
-                    self.push(b'250 Ok')
+                    self.push(b'250 2.0.0 Ok')
                 else:
                     self.push(status)
 
@@ -106,21 +106,25 @@ class LMTPChannel(asynchat.async_chat):
     # LMTP commands
     def lmtp_LHLO(self, arg):
         if not arg:
-            self.push(b'501 Syntax: LHLO hostname')
+            self.push(b'501 5.5.4 Syntax: LHLO hostname')
         elif self.__greeting:
-            self.push(b'503 Duplicate LHLO')
+            self.push(b'503 5.5.1 Duplicate LHLO')
         else:
             self.__greeting = arg
-            self.push(b'250 ' + self.__fqdn.encode())
+            # only the last line has a space between the state code and
+            # parameter, this is so the client knows we're finished
+            self.push(b'250-' + self.__fqdn.encode())
+            self.push(b'250-ENHANCEDSTATUSCODES')
+            self.push(b'250 PIPELINING')
 
     def lmtp_NOOP(self, arg):
         if arg:
-            self.push(b'501 Syntax: NOOP')
+            self.push(b'501 5.5.4 Syntax: NOOP')
         else:
-            self.push(b'250 Ok')
+            self.push(b'250 2.0.0 Ok')
 
     def lmtp_QUIT(self, arg):
-        self.push(b'221 Bye')
+        self.push(b'221 2.0.0 Bye')
         self.close_when_done()
 
     def __getaddr(self, keyword, arg):
@@ -140,49 +144,50 @@ class LMTPChannel(asynchat.async_chat):
         print(b'===> MAIL', arg, file=DEBUGSTREAM)
         address = self.__getaddr(b'FROM:', arg) if arg else None
         if not address:
-            self.push(b'501 Syntax: MAIL FROM:<address>')
+            self.push(b'501 5.5.4 Syntax: MAIL FROM:<address>')
             return
         if self.__mailfrom:
-            self.push(b'503 Error: nested MAIL command')
+            self.push(b'503 5.5.1 Error: nested MAIL command')
             return
         self.__mailfrom = address
         print(b'sender:', self.__mailfrom, file=DEBUGSTREAM)
-        self.push(b'250 Ok')
+        self.push(b'250 2.1.0 Ok')
 
     def lmtp_RCPT(self, arg):
         print(b'===> RCPT', arg, file=DEBUGSTREAM)
         if not self.__mailfrom:
-            self.push(b'503 Error: need MAIL command')
+            self.push(b'503 5.5.1 Error: need MAIL command')
             return
         address = self.__getaddr(b'TO:', arg) if arg else None
         if not address:
-            self.push(b'501 Syntax: RCPT TO: <address>')
+            self.push(b'501 5.5.4 Syntax: RCPT TO: <address>')
             return
         self.__rcpttos.append(address)
         print(b'recips:', self.__rcpttos, file=DEBUGSTREAM)
-        self.push(b'250 Ok')
+        self.push(b'250 2.1.0 Ok')
 
     def lmtp_RSET(self, arg):
         if arg:
-            self.push(b'501 Syntax: RSET')
+            self.push(b'501 5.5.4 Syntax: RSET')
             return
         # Resets the sender, recipients, and data, but not the greeting
         self.__mailfrom = None
         self.__rcpttos = []
         self.__data = b''
         self.__state = self.COMMAND
-        self.push(b'250 Ok')
+        self.push(b'250 2.0.0 Ok')
 
     def lmtp_DATA(self, arg):
         if not self.__rcpttos:
-            self.push(b'503 Error: need RCPT command')
+            self.push(b'503 5.5.1 Error: need RCPT command')
             return
         if arg:
-            self.push(b'501 Syntax: DATA')
+            self.push(b'501 5.5.4 Syntax: DATA')
             return
         self.__state = self.DATA
         self.set_terminator(b'\r\n.\r\n')
         self.push(b'354 End data with <CR><LF>.<CR><LF>')
+
 
 class LMTPServer(SMTPServer):
     """Exactly the same interface as smtpd.SMTPServer, override `process_message` to use"""
