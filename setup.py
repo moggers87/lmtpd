@@ -10,7 +10,7 @@ config = {
     'url': 'https://github.com/moggers87/lmtpd',
     'download_url': 'http://pypi.python.org/pypi/lmtpd',
     'author_email': 'moggers87+git@moggers87.co.uk',
-    'version': '5',
+    'version': '6.0.0',
     'license': 'MIT', # apparently nothing searches classifiers :(
     'packages': ['lmtpd'],
     'data_files': [('share/lmtpd', ['LICENSE', 'PY-LIC'])],
