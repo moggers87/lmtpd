@@ -1,12 +1,14 @@
 language: python
+dist: xenial
+sudo: false
 
 env:
     global:
         - LMTPD_TEST_POST=9988
 
 python:
-    - "pypy"
-    - "pypy3"
+    - pypy2.7-6.0
+    - pypy3.5-6.0
     - "3.6"
     - "3.5"
     - "3.4"
