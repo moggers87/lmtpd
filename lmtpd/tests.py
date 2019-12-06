@@ -19,12 +19,97 @@ MSG = b"""Subject: I keep falling off!
 
 Oh! Well I never!
 """
+TEST_PORT = int(os.environ.get("LMTPD_TEST_POST", 8899))
 
 
 class LMTPTestServer(lmtpd.LMTPServer):
     def process_message(*args, **kwargs):
         """Do nothing, server will return 250 OK"""
         pass
+
+
+class LMTPTestAF(unittest.TestCase):
+    def test_ipv4(self):
+        first_line = ""
+        conn = None
+        socket_file = None
+        server = None
+        loop = None
+        try:
+            server = LMTPTestServer(("127.0.0.1", TEST_PORT))
+            loop = threading.Thread(target=asyncore.loop, kwargs={'timeout': 1})
+            loop.start()
+
+            # connect to server
+            conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            conn.connect(("127.0.0.1", TEST_PORT))
+            socket_file = conn.makefile('rb')
+
+            first_line = socket_file.readline()
+        finally:
+            getattr(conn, "close", lambda: None)()
+            getattr(socket_file, "close", lambda: None)()
+            getattr(server, "close", lambda: None)()
+            getattr(loop, "join", lambda: None)()
+
+        # just check that something sensible has been given
+        self.assertEqual(first_line[:4], b"220 ")
+
+    @unittest.skipIf(os.environ.get("TRAVIS", False), "Travis CI does not support IPv6")
+    def test_ipv6(self):
+        first_line = ""
+        conn = None
+        socket_file = None
+        server = None
+        loop = None
+        try:
+            server = LMTPTestServer(("::1", TEST_PORT))
+            loop = threading.Thread(target=asyncore.loop, kwargs={'timeout': 1})
+            loop.start()
+
+            # connect to server
+            conn = socket.socket(socket.AF_INET6, socket.SOCK_STREAM)
+            conn.connect(("::1", TEST_PORT))
+            socket_file = conn.makefile('rb')
+
+            first_line = socket_file.readline()
+        finally:
+            getattr(conn, "close", lambda: None)()
+            getattr(socket_file, "close", lambda: None)()
+            getattr(server, "close", lambda: None)()
+            getattr(loop, "join", lambda: None)()
+
+        # just check that something sensible has been given
+        self.assertEqual(first_line[:4], b"220 ")
+
+    def test_unix(self):
+        first_line = ""
+        conn = None
+        socket_file = None
+        server = None
+        loop = None
+        try:
+            tempdir = tempfile.mkdtemp()
+            socket_name = os.path.join(tempdir, "lmtp")
+            server = LMTPTestServer(socket_name)
+            loop = threading.Thread(target=asyncore.loop, kwargs={'timeout': 1})
+            loop.start()
+
+            # connect to server
+            conn = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+            conn.connect(socket_name)
+            socket_file = conn.makefile('rb')
+
+            first_line = socket_file.readline()
+        finally:
+            getattr(conn, "close", lambda: None)()
+            getattr(socket_file, "close", lambda: None)()
+            getattr(server, "close", lambda: None)()
+            getattr(loop, "join", lambda: None)()
+            shutil.rmtree(tempdir, ignore_errors=True)
+
+        # just check that something sensible has been given
+        self.assertEqual(first_line[:4], b"220 ")
 
 
 class LMTPTester(unittest.TestCase):
