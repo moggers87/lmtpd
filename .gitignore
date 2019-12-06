@@ -2,3 +2,4 @@
 lmtpd.egg-info
 dist
 build
+.eggs
