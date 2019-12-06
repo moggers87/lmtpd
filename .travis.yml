@@ -1,5 +1,9 @@
 language: python
 
+env:
+    global:
+        - LMTPD_TEST_POST=9988
+
 python:
     - "pypy"
     - "pypy3"

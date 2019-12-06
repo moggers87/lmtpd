@@ -31,7 +31,7 @@ config = {
         'Programming Language :: Python :: Implementation :: PyPy',
         'Intended Audience :: Developers',
         'Topic :: Communications :: Email'],
-    'test_suite': 'lmtpd.tests.LMTPTester'
+    'test_suite': 'lmtpd.tests'
 }
 
 setup(**config)

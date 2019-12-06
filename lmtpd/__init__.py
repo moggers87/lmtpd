@@ -193,13 +193,13 @@ class LMTPChannel(asynchat.async_chat):
 class LMTPServer(SMTPServer):
     """Exactly the same interface as smtpd.SMTPServer, override `process_message` to use"""
     def __init__(self, localaddr):
+        self._localaddr = localaddr
+        asyncore.dispatcher.__init__(self)
         if type(localaddr) in (type(u""), type(b"")):
             inet_or_unix = socket.AF_UNIX
         else:
-            inet_or_unix = socket.AF_INET
+            inet_or_unix = socket.getaddrinfo(localaddr[0], localaddr[1], 0, socket.SOCK_STREAM)[0][0]
 
-        self._localaddr = localaddr
-        asyncore.dispatcher.__init__(self)
         try:
             self.create_socket(inet_or_unix, socket.SOCK_STREAM)
             # try to re-use a server port if possible
