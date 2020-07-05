@@ -97,7 +97,7 @@ class LMTPChannel(asynchat.async_chat):
                 if not status:
                     self.push(b'250 2.0.0 Ok')
                 else:
-                    self.push(status)
+                    self.push(bytes(status, "utf-8"))
 
             self.__rcpttos = []
             self.__mailfrom = None

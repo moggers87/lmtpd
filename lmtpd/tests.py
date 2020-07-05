@@ -23,9 +23,11 @@ TEST_PORT = int(os.environ.get("LMTPD_TEST_POST", 8899))
 
 
 class LMTPTestServer(lmtpd.LMTPServer):
-    def process_message(*args, **kwargs):
+    reply = None
+
+    def process_message(self, *args, **kwargs):
         """Do nothing, server will return 250 OK"""
-        pass
+        return self.reply
 
 
 class LMTPTestAF(unittest.TestCase):
@@ -241,3 +243,17 @@ class LMTPTester(unittest.TestCase):
         # DATA reply
         code, reply = self.reply()
         self.assertEqual(code, 354, reply)
+
+    def test_process_message_returns_str(self):
+        self.server.reply = "451 No you don't"
+        code, reply = self.reply()
+        code, reply = self.do_cmd(b"LHLO localhost")
+        code, reply = self.reply()
+        code, reply = self.reply()
+        code, reply = self.do_cmd(b"MAIL FROM:<" + FROM + b">")
+        code, reply = self.do_cmd(b"RCPT TO:<" + TO + b">")
+        code, reply = self.do_cmd(b"DATA")
+        self.conn.send(MSG)
+        self.conn.send(b"\r\n.\r\n")
+        code, reply = self.reply()
+        self.assertEqual(code, 451, reply)
