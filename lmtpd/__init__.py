@@ -15,7 +15,7 @@ import socket
 import time
 import errno
 
-__version__ = 'Python LMTP server version 6.0.0'
+__version__ = 'Python LMTP server version 6.2.0'
 
 
 class LMTPChannel(asynchat.async_chat):
